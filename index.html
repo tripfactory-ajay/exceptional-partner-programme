@@ -1,1 +1,720 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TripFactory EPP vs Travelosophers — Full Programme Analysis v2</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; background: #f0f2f5; color: #222; font-size: 13px; }
 
+  /* ── NAV TABS ── */
+  .tabs { display: flex; background: #1a1a2e; border-bottom: 3px solid #e65100; overflow-x: auto; }
+  .tab { padding: 12px 20px; color: #aac4ff; font-size: 12px; font-weight: 700; cursor: pointer; white-space: nowrap; border-bottom: 3px solid transparent; margin-bottom: -3px; transition: all 0.2s; }
+  .tab:hover { background: #16213e; color: #fff; }
+  .tab.active { color: #fff; border-bottom: 3px solid #e65100; background: #16213e; }
+
+  .page { display: none; }
+  .page.active { display: block; }
+
+  /* ── HEADER ── */
+  .header { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); color: #fff; padding: 22px 28px; }
+  .header h1 { font-size: 20px; font-weight: 800; margin-bottom: 5px; }
+  .header p { font-size: 11px; color: #90caf9; }
+
+  /* ── SUMMARY BOXES ── */
+  .summary { display: flex; background: #fff; border-bottom: 2px solid #e0e0e0; flex-wrap: wrap; }
+  .sum-box { flex: 1; min-width: 80px; padding: 12px 8px; text-align: center; border-right: 1px solid #eee; }
+  .sum-box:last-child { border-right: none; }
+  .sum-num { font-size: 26px; font-weight: 900; line-height: 1; }
+  .sum-label { font-size: 10px; color: #666; margin-top: 3px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.4px; }
+  .s1{color:#e65100} .s2{color:#1565c0} .s3{color:#2e7d32} .s4{color:#6a1b9a}
+
+  /* ── LEGEND ── */
+  .legend { display: flex; gap: 16px; padding: 8px 18px; background: #fff; border-bottom: 1px solid #ddd; flex-wrap: wrap; align-items: center; }
+  .legend span { font-size: 11px; font-weight: 700; display: flex; align-items: center; gap: 5px; }
+  .dot { width: 11px; height: 11px; border-radius: 50%; display: inline-block; }
+
+  /* ── TABLE ── */
+  .section-title { background: #37474f; color: #fff; padding: 7px 18px; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; margin-top: 2px; }
+  .thead { display: grid; grid-template-columns: 130px 1fr 1fr 1fr 1fr; position: sticky; top: 0; z-index: 20; }
+  .th { padding: 9px 12px; font-size: 11px; font-weight: 800; color: #fff; }
+  .th0{background:#37474f} .th1{background:#bf360c} .th2{background:#0d47a1} .th3{background:#1b5e20} .th4{background:#4a148c}
+  .row { display: grid; grid-template-columns: 130px 1fr 1fr 1fr 1fr; border-bottom: 1px solid #e8e8e8; background: #fff; }
+  .row:hover { background: #f8f9ff; }
+  .cell { padding: 11px 13px; border-right: 1px solid #eee; font-size: 12px; line-height: 1.55; }
+  .cell:last-child { border-right: none; }
+  .cell-area { font-weight: 700; color: #37474f; font-size: 11px; background: #fafafa; display: flex; align-items: flex-start; padding-top: 13px; }
+  .gap-cell { background: #f1f8e9; }
+  .action-cell { background: #f3e5f5; }
+  .pill { display: inline-block; padding: 2px 7px; border-radius: 10px; font-size: 10px; font-weight: 800; margin-bottom: 5px; }
+  .yes{background:#c8e6c9;color:#1b5e20} .partial{background:#ffe0b2;color:#e65100} .no{background:#ffcdd2;color:#b71c1c}
+
+  /* ── MODELS PAGE ── */
+  .models-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; padding: 20px; }
+  .model-card { background: #fff; border-radius: 8px; border: 1px solid #e0e0e0; overflow: hidden; box-shadow: 0 2px 6px rgba(0,0,0,0.06); }
+  .model-card .mc-head { padding: 14px 16px 10px; border-bottom: 1px solid #eee; }
+  .model-card .mc-head h3 { font-size: 14px; font-weight: 800; margin-bottom: 4px; }
+  .model-card .mc-head .badge { display: inline-block; padding: 2px 10px; border-radius: 12px; font-size: 10px; font-weight: 800; }
+  .model-card .mc-body { padding: 12px 16px; font-size: 12px; line-height: 1.6; }
+  .model-card .mc-body ul { padding-left: 16px; margin: 8px 0; }
+  .model-card .mc-body li { margin-bottom: 3px; }
+  .model-card .mc-foot { padding: 10px 16px; background: #f5f5f5; font-size: 11px; font-weight: 700; }
+  .badge-elite { background: #fff3e0; color: #e65100; }
+  .badge-free { background: #e8f5e9; color: #2e7d32; }
+  .badge-contact { background: #e3f2fd; color: #1565c0; }
+  .tf-card { border-left: 4px solid #e65100; }
+  .tv-card { border-left: 4px solid #1565c0; }
+
+  .models-intro { padding: 16px 20px 0; }
+  .models-intro h2 { font-size: 16px; font-weight: 800; margin-bottom: 6px; color: #1a1a2e; }
+  .models-intro p { font-size: 12px; color: #555; line-height: 1.6; margin-bottom: 4px; }
+
+  .arrow-row { display: flex; align-items: center; justify-content: center; padding: 8px; color: #e65100; font-size: 20px; }
+
+  /* ── WHATS INCLUDED / WHY US ── */
+  .inc-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; padding: 20px; }
+  .inc-card { background: #fff; border-radius: 8px; border: 1px solid #e0e0e0; padding: 14px 16px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+  .inc-card h3 { font-size: 13px; font-weight: 800; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+  .inc-card .icon { width: 28px; height: 28px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; }
+  .inc-card ul { padding-left: 16px; font-size: 12px; line-height: 1.7; color: #444; }
+  .inc-card .tf-note { margin-top: 10px; padding: 8px 10px; background: #fff3e0; border-left: 3px solid #e65100; font-size: 11px; line-height: 1.5; border-radius: 0 4px 4px 0; }
+  .inc-card .tf-note strong { color: #e65100; }
+
+  .why-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; padding: 20px; }
+  .why-card { background: #fff; border-radius: 8px; border: 1px solid #e0e0e0; padding: 12px 14px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+  .why-card h3 { font-size: 12px; font-weight: 800; margin-bottom: 6px; color: #1a1a2e; }
+  .why-card p { font-size: 11px; color: #555; line-height: 1.6; }
+  .why-card .tf-eq { margin-top: 8px; padding: 6px 8px; background: #e8f5e9; border-left: 3px solid #2e7d32; font-size: 11px; border-radius: 0 4px 4px 0; }
+  .why-card .tf-gap { margin-top: 8px; padding: 6px 8px; background: #fff3e0; border-left: 3px solid #e65100; font-size: 11px; border-radius: 0 4px 4px 0; }
+
+  .section-intro { padding: 16px 20px 4px; }
+  .section-intro h2 { font-size: 16px; font-weight: 800; color: #1a1a2e; margin-bottom: 5px; }
+  .section-intro p { font-size: 12px; color: #555; line-height: 1.6; }
+
+  .scroll { overflow: auto; max-height: calc(100vh - 145px); }
+  .footer-bar { background: #1a1a2e; color: #90caf9; text-align: center; padding: 12px; font-size: 11px; }
+
+  /* highlight box */
+  .highlight-box { margin: 0 20px 16px; background: #e8eaf6; border-left: 4px solid #3949ab; padding: 12px 16px; border-radius: 0 6px 6px 0; font-size: 12px; line-height: 1.7; }
+  .highlight-box strong { color: #3949ab; }
+</style>
+</head>
+<body>
+
+<!-- TABS -->
+<div class="tabs">
+  <div class="tab active" onclick="showPage('gap')">📊 Gap Analysis</div>
+  <div class="tab" onclick="showPage('models')">🏗️ Business Models</div>
+  <div class="tab" onclick="showPage('included')">📦 What's Included</div>
+  <div class="tab" onclick="showPage('whyus')">⭐ Why Us → TF Lessons</div>
+</div>
+
+<!-- ═══════════════════════════════════════════════ PAGE 1: GAP ANALYSIS -->
+<div id="gap" class="page active">
+  <div class="header">
+    <h1>TripFactory EPP vs Travelosophers TSP — Programme Gap Analysis</h1>
+    <p>India PSA Programme · Based on EPP SOP, Evaluation Responses, Franchise Agreement, Process Docs, Incentives &amp; Policies · March 2026</p>
+  </div>
+  <div class="summary">
+    <div class="sum-box"><div class="sum-num s1">12</div><div class="sum-label">EPP Areas</div></div>
+    <div class="sum-box"><div class="sum-num s2">12</div><div class="sum-label">TSP Areas</div></div>
+    <div class="sum-box"><div class="sum-num s3">9</div><div class="sum-label">Gaps Found</div></div>
+    <div class="sum-box"><div class="sum-num s4">9</div><div class="sum-label">TF Actions</div></div>
+  </div>
+  <div class="legend">
+    <span><span class="dot" style="background:#e65100"></span> TripFactory EPP (India)</span>
+    <span><span class="dot" style="background:#1565c0"></span> Travelosophers TSP (UK)</span>
+    <span><span class="dot" style="background:#2e7d32"></span> Gap / Opportunity</span>
+    <span><span class="dot" style="background:#6a1b9a"></span> Recommended Action</span>
+  </div>
+  <div class="scroll">
+    <div class="thead">
+      <div class="th th0">Area</div>
+      <div class="th th1">🇮🇳 TripFactory EPP</div>
+      <div class="th th2">🇬🇧 Travelosophers TSP</div>
+      <div class="th th3">Gap / Opportunity</div>
+      <div class="th th4">Recommended Action</div>
+    </div>
+
+    <div class="section-title">1 · Entry &amp; Recruitment</div>
+    <div class="row">
+      <div class="cell cell-area">Eligibility Criteria</div>
+      <div class="cell"><span class="pill partial">Partial</span><br>Field team identifies prospects on gut feel + volume + network. No minimum experience criteria.</div>
+      <div class="cell"><span class="pill yes">Defined</span><br>Min. 3 years' travel sales experience required. Must have customer-facing holiday selling history, destination knowledge, and drive to run own business.</div>
+      <div class="cell gap-cell">Risk of onboarding weak profiles that consume support without returns. No standard benchmark.</div>
+      <div class="action-cell cell">Define PSA eligibility: min. years in travel, min. annual pax/revenue, existing client base size. Codify in Google Form screening.</div>
+    </div>
+    <div class="row">
+      <div class="cell cell-area">Application Funnel</div>
+      <div class="cell"><span class="pill yes">Strong</span><br>4-step funnel: Field meeting → Google Form → Leadership screening → Final interview (Sanjay + Ganesh Sir). 26 met, 12 final round, 6 confirmed.</div>
+      <div class="cell"><span class="pill yes">Strong</span><br>Discovery call → application → contract → induction. BDM assigned immediately post-signing.</div>
+      <div class="cell gap-cell">TF relies on leadership judgement rather than a scored rubric. Inconsistent across field team members.</div>
+      <div class="action-cell cell">Create a scored interview scorecard aligned to TRSG pillars. Each criterion rated 1–5. Minimum pass score to proceed.</div>
+    </div>
+
+    <div class="section-title">2 · Commercial Structure</div>
+    <div class="row">
+      <div class="cell cell-area">Monthly Fee / Cost</div>
+      <div class="cell"><span class="pill no">Not Defined</span><br>No monthly fee structure. EPP appears free. No published cost to PSA for platform, support, or training.</div>
+      <div class="cell"><span class="pill yes">Clear</span><br>Zero start-up cost. Ongoing £49+VAT/month. Additional fees if extra staff added. Card processing fees deducted from commission.</div>
+      <div class="cell gap-cell">Without a fee or commitment mechanism, TF can't recover investment if PSA underperforms or exits early.</div>
+      <div class="action-cell cell">Consider a nominal monthly commitment (₹2,000–5,000) or minimum booking target with a structured exit/clawback clause within 12 months.</div>
+    </div>
+    <div class="row">
+      <div class="cell cell-area">Commission Structure</div>
+      <div class="cell"><span class="pill partial">Partial</span><br>Commission referenced but no % rates or payment timings published. Growth tiers mentioned but not formalised.</div>
+      <div class="cell"><span class="pill yes">Clear</span><br>65% of gross profit to PSA. Statement on 15th of each month. Paid last business day of that month. Cancelled bookings: immediate clawback. Commission can scale to 80% (Directors Club).</div>
+      <div class="cell gap-cell">PSAs have no certainty about what they earn or when. Critical barrier to commitment.</div>
+      <div class="action-cell cell">Publish commission schedule by booking type (FIT/GIT/MICE/FD). Define payment timing. Include cancellation clawback. Create tiered commission growth (e.g. 60% → 70% → 80% by volume).</div>
+    </div>
+    <div class="row">
+      <div class="cell cell-area">Minimum Sales Target</div>
+      <div class="cell"><span class="pill no">Not Defined</span><br>Growth tiers exist as aspiration but no enforceable minimum. Low performers remain indefinitely.</div>
+      <div class="cell"><span class="pill yes">Enforced</span><br>£150,000 gross sales per 12 months. Failure = contractual termination trigger. Reviewed annually.</div>
+      <div class="cell gap-cell">Inactive PSAs drain TF support resources with no mechanism to exit or upgrade them.</div>
+      <div class="action-cell cell">Set tiered targets: Tier 1 PSA (₹50L/year), Tier 2 (₹1.5Cr/year), Tier 3 EPP Elite (₹3Cr+). Review at 6 &amp; 12 months. Tie to partnership benefits and commission tier.</div>
+    </div>
+    <div class="row">
+      <div class="cell cell-area">Discounting &amp; Margin</div>
+      <div class="cell"><span class="pill no">Missing</span><br>No discounting or margin guidance for PSAs. No guidance on gross vs net pricing or markup rules.</div>
+      <div class="cell"><span class="pill yes">Documented</span><br>PSA controls their margin freely on dynamic packages. Must coordinate with TO for 3rd party package markups. Payment fees must always be covered. Strategic guidance on when not to discount.</div>
+      <div class="cell gap-cell">PSAs competing with OTAs will discount without understanding the consequences to income and TF minimum targets.</div>
+      <div class="action-cell cell">Produce a Discounting &amp; Margin Guide: gross vs net pricing, how to handle price match requests, when NOT to discount, minimum margin to always cover payment costs.</div>
+    </div>
+
+    <div class="section-title">3 · Onboarding &amp; Legal</div>
+    <div class="row">
+      <div class="cell cell-area">Formal Agreement</div>
+      <div class="cell"><span class="pill partial">Mentioned</span><br>Agreement referenced in Phase 2 SOP but no standard template or signed document in the EPP materials.</div>
+      <div class="cell"><span class="pill yes">Comprehensive</span><br>Full 21-clause legal agreement: appointment, commission, IP, data protection, training SLAs, termination, non-compete (1yr post-exit), indemnity. Signed via DocuSign.</div>
+      <div class="cell gap-cell">Without a signed agreement, TF has no legal recourse if PSA leaves, takes clients, or breaches brand standards.</div>
+      <div class="action-cell cell">Draft a standard EPP Partner Agreement: commission terms, minimum targets, non-solicitation, brand usage, termination notice, data handling, exit obligations.</div>
+    </div>
+    <div class="row">
+      <div class="cell cell-area">Service Level Commitments</div>
+      <div class="cell"><span class="pill no">Missing</span><br>No formal SLAs for TF or PSA. Support described generically but not measured or enforced.</div>
+      <div class="cell"><span class="pill yes">Contractual</span><br>12 LMS modules/year (100%), 8 supplier/destination trainings/year (100%), business plan within 3 months (100%). Service Level Failure = termination trigger.</div>
+      <div class="cell gap-cell">Without mutual SLAs there is no accountability on either side.</div>
+      <div class="action-cell cell">Define mutual SLAs: TF commits to quote TAT within 4hrs, support 6 days/week, monthly review. PSA commits to training modules, business plan, monthly reporting.</div>
+    </div>
+
+    <div class="section-title">4 · Training</div>
+    <div class="row">
+      <div class="cell cell-area">Induction Training</div>
+      <div class="cell"><span class="pill partial">Basic</span><br>Product, process, sales pitch, system usage mentioned in Phase 2. No structured curriculum, timeline, or completion criteria.</div>
+      <div class="cell"><span class="pill yes">Structured</span><br>2-day virtual induction + 1-day business planning with BDM. Brand, pipeline creation, customer finding, tools, systems. LMS access from Day 1.</div>
+      <div class="cell gap-cell">TF induction is informal. PSAs go live inconsistently prepared. Risk of poor early bookings damaging relationships.</div>
+      <div class="action-cell cell">Build a 2–3 day EPP Induction: Day 1 (TF platform + product), Day 2 (booking flow + quotation), Day 3 (market mining + business plan). Virtual via Zoom. Issue completion certificate.</div>
+    </div>
+    <div class="row">
+      <div class="cell cell-area">Ongoing Training / LMS</div>
+      <div class="cell"><span class="pill partial">Informal</span><br>Destination and supplier training referenced but no LMS, training calendar, or completion tracking exists.</div>
+      <div class="cell"><span class="pill yes">Formalised</span><br>Full LMS with ongoing modules. Expert masterclasses on destinations, marketing, business. Familiarisation trip opportunities. Min. 8 supplier/destination trainings/year contractually required.</div>
+      <div class="cell gap-cell">No self-serve learning resource. Knowledge gaps compound. No tracking to identify under-trained PSAs.</div>
+      <div class="action-cell cell">Build a basic LMS (Google Classroom or Notion initially). Quarterly training calendar: destination months, supplier webinars, business skills. Track completions. Add fam trip opportunities as reward.</div>
+    </div>
+    <div class="row">
+      <div class="cell cell-area">Business Plan</div>
+      <div class="cell"><span class="pill no">Missing</span><br>Business growth discussed at interview but no formal plan required post-onboarding. No accountability to written targets.</div>
+      <div class="cell"><span class="pill yes">Mandatory</span><br>Business plan submitted within 3 months. Dedicated 1-day planning session with BDM. Reviewed quarterly.</div>
+      <div class="cell gap-cell">PSAs who don't commit to paper are far less likely to execute. Most powerful accountability tool being left unused.</div>
+      <div class="action-cell cell">Mandate a 12-month business plan from every EPP partner within 60 days. Provide a standard TF template. Review quarterly with EPP Head. Make this a condition of the first commission payment.</div>
+    </div>
+
+    <div class="section-title">5 · Support Structure</div>
+    <div class="row">
+      <div class="cell cell-area">Dedicated Support Person</div>
+      <div class="cell"><span class="pill partial">Shared</span><br>Field team collectively manages PSA relationships. Ganesh Sir oversees. No named account manager per PSA.</div>
+      <div class="cell"><span class="pill yes">Named BDM</span><br>Every PSA gets a named Business Development Manager. Day-to-day availability. Quarterly formal business reviews. Coach, escalation point, and community builder.</div>
+      <div class="cell gap-cell">Without a named contact, PSAs feel unsupported. Queries get lost. Field team bandwidth spreads too thin as numbers grow.</div>
+      <div class="action-cell cell">Assign each EPP partner a named TF Account Manager. Define role: weekly check-in, monthly performance review, escalation for booking issues. Start with existing field team.</div>
+    </div>
+    <div class="row">
+      <div class="cell cell-area">After-Sales / Ops Support</div>
+      <div class="cell"><span class="pill yes">Strong</span><br>Phase 4 covers: bookings, amendments, vouchers, itineraries, issue resolution. 24/7 support referenced. Core TF differentiator.</div>
+      <div class="cell"><span class="pill yes">Strong</span><br>Head Office admin handles all after-sales centrally. PSA focuses entirely on selling. Amendments, cancellations, supplier payments managed by HO. In-house finance, admin, marketing, IT support.</div>
+      <div class="cell gap-cell">Both strong. TF needs to market this more explicitly as a core recruitment benefit.</div>
+      <div class="action-cell cell">Create a one-page "What TF Does For You" document for PSA recruitment: "We handle all amendments, vouchers, supplier payments and on-trip issues so you can focus 100% on selling."</div>
+    </div>
+    <div class="row">
+      <div class="cell cell-area">Complaints Process</div>
+      <div class="cell"><span class="pill partial">Partial</span><br>Issue resolution mentioned in Phase 4 but no documented complaints SOP for PSAs. No escalation path, timeline, or form to complete.</div>
+      <div class="cell"><span class="pill yes">Documented</span><br>Three-tier process: (1) In-resort with supplier. (2) Written complaint within 28 days of return — PSA facilitates. (3) Escalation to HO via Teams Portal. BDM advises. Mid-trip check-in recommended.</div>
+      <div class="cell gap-cell">Without a complaints SOP, PSAs either ignore complaints (legal risk) or make promises TF can't keep (financial risk).</div>
+      <div class="action-cell cell">Publish a PSA Complaints Handling Guide. Define in-resort path → post-return 28-day window → TF HO escalation → resolution timeline. Encourage mid-trip WhatsApp check-in with all clients.</div>
+    </div>
+
+    <div class="section-title">6 · Marketing &amp; Growth</div>
+    <div class="row">
+      <div class="cell cell-area">Brand &amp; Marketing Materials</div>
+      <div class="cell"><span class="pill partial">Partial</span><br>Brochures, pitch decks, campaign templates, WhatsApp/email formats mentioned. Rotary/BNI market mining grid is genuinely MORE advanced than Travelosophers.</div>
+      <div class="cell"><span class="pill yes">Personalised</span><br>Personalised business name, unique logo, email signature, dedicated microsite page, optional personal phone number, monthly social media assets, co-branded POS materials, personal quotation docs.</div>
+      <div class="cell gap-cell">TF's market mining strategy is world-class but PSAs lack personalised marketing identity. No city-specific co-branded toolkit per PSA.</div>
+      <div class="action-cell cell">Create co-branded EPP marketing kits per PSA: branded WhatsApp templates (city-specific), personalised pitch deck with PSA name and market focus, monthly social media asset pack. Low cost, high impact.</div>
+    </div>
+    <div class="row">
+      <div class="cell cell-area">Conferences &amp; Events</div>
+      <div class="cell"><span class="pill no">Missing</span><br>No PSA conference, community events, or networking events referenced in the EPP programme.</div>
+      <div class="cell"><span class="pill yes">Annual Programme</span><br>Annual overseas conference, annual UK conference, regional dinner events, supplier events. Community of Travelosophers encouraged as peer support network.</div>
+      <div class="cell gap-cell">No community = no peer accountability, no knowledge sharing, no shared identity. PSAs feel isolated and are less loyal to the programme.</div>
+      <div class="action-cell cell">Launch an annual EPP conference (even a 1-day event in Bangalore or Mumbai). Add quarterly regional meetups per zone. Create a dedicated EPP WhatsApp community for peer support and best practice sharing.</div>
+    </div>
+    <div class="row">
+      <div class="cell cell-area">Supplier Incentives Tracker</div>
+      <div class="cell"><span class="pill no">Not Shared</span><br>TF has strong supplier relationships but no incentives tracker or tactical commission overrides are shared with PSAs.</div>
+      <div class="cell"><span class="pill yes">Maintained</span><br>Live incentives tracker: Gold Medal Farebanks, TTC £40/booking, G Adventures 25% peaks, EasyJet £400 off, Riviera 10% off. TTO commission list (15%) by destination tracked and updated monthly.</div>
+      <div class="cell gap-cell">PSAs miss extra earning opportunities. Makes the programme feel unrewarding vs competitors who communicate deals regularly.</div>
+      <div class="action-cell cell">Create a live EPP Incentives Tracker (shared Google Sheet). Share monthly supplier tactical deals with all EPP partners. Highlight destination-specific commission uplifts. Update at start of each month.</div>
+    </div>
+    <div class="row">
+      <div class="cell cell-area">Payment &amp; Fraud Guidance</div>
+      <div class="cell"><span class="pill no">Missing</span><br>No guidance on payment handling, fraud prevention, or third-party payment risks.</div>
+      <div class="cell"><span class="pill yes">Documented</span><br>Clear 3rd party payment policy: no card payments from non-travellers. Bank transfer acceptable. Explicit fraud risk warning. PSA personally liable if policy breached without HO approval.</div>
+      <div class="cell gap-cell">India's travel market has significant fraud risk. PSAs transacting without guidance expose TF to financial and reputational damage.</div>
+      <div class="action-cell cell">Add a Payment &amp; Fraud Awareness module to EPP onboarding. Cover: approved payment methods, red flags for fraudulent bookings, third-party payment risks, when to escalate immediately to TF ops team.</div>
+    </div>
+
+    <div class="section-title">7 · Legal &amp; Compliance</div>
+    <div class="row">
+      <div class="cell cell-area">Regulatory Framework</div>
+      <div class="cell"><span class="pill partial">Implicit</span><br>TF operates within India's travel framework. No compliance guide or obligations checklist provided to PSAs.</div>
+      <div class="cell"><span class="pill yes">Full</span><br>ABTA (P8318) + ATOL + IATA + Advantage Travel Partnership (£4.5bn collective). Full legal framework: PTRs, UK GDPR, Bribery Act 2010, Modern Slavery Act. Dynamic Packaging ATOL process fully trained. Professional Indemnity insurance.</div>
+      <div class="cell gap-cell">TF PSAs don't know their regulatory responsibilities under India's consumer protection law, GST on travel, or what TF's licence does and doesn't cover.</div>
+      <div class="action-cell cell">Create an India Regulatory Compliance Brief for EPP partners: consumer protection obligations, GST on travel services, data handling basics, what TF's IATA/licence covers vs PSA's own responsibility. Plain language, 1–2 pages.</div>
+    </div>
+  </div>
+  <div class="footer-bar">TripFactory EPP vs Travelosophers TSP · Gap Analysis · March 2026 · For Internal Use Only</div>
+</div>
+
+<!-- ═══════════════════════════════════════════════ PAGE 2: BUSINESS MODELS -->
+<div id="models" class="page">
+  <div class="header">
+    <h1>Travelosophers Business Models → TripFactory EPP Tier Recommendations</h1>
+    <p>Travelosophers offers 5 distinct entry routes. TripFactory currently has one. Here's how TF could adopt a tiered model.</p>
+  </div>
+  <div class="models-intro">
+    <h2>Travelosophers — 5 Business Options (UK)</h2>
+    <p>Rather than one-size-fits-all, Travelosophers segments its partners by experience level and business type. This lets them recruit much more widely while giving the right support level to each group. TripFactory's EPP currently treats all PSAs the same regardless of whether they're a 15-year veteran or a 1-year-old agency.</p>
+  </div>
+
+  <div class="models-grid">
+    <div class="model-card tv-card">
+      <div class="mc-head">
+        <span class="badge badge-elite">ELITE PACKAGE</span>
+        <h3>Travel Sales Professional</h3>
+        <div style="font-size:11px; color:#666; margin-top:3px;">Experienced homeworkers / retail agents</div>
+      </div>
+      <div class="mc-body">
+        <strong>Who:</strong> Min. 3 years' travel sales experience, customer-facing, destination expertise.<br><br>
+        <ul>
+          <li>65% commission from day one</li>
+          <li>2-day virtual induction</li>
+          <li>Dedicated BDM</li>
+          <li>Full platform access</li>
+          <li>Personalised brand &amp; microsite</li>
+          <li>Dynamic packaging capabilities</li>
+        </ul>
+      </div>
+      <div class="mc-foot">Start-up: FREE · Monthly: £49+VAT · Sales Target: £150,000/yr</div>
+    </div>
+
+    <div class="model-card tv-card">
+      <div class="mc-head">
+        <span class="badge badge-free">STANDARD PACKAGE</span>
+        <h3>Travel Industry Professional</h3>
+        <div style="font-size:11px; color:#666; margin-top:3px;">1–3 yrs travel sales OR 4+ yrs in travel industry</div>
+      </div>
+      <div class="mc-body">
+        <strong>Who:</strong> Less pure sales experience but solid industry background (ops, product, airline, hotel etc).<br><br>
+        <ul>
+          <li>60% commission starting point</li>
+          <li>Extended induction support</li>
+          <li>More structured training requirement</li>
+          <li>BDM with closer monitoring</li>
+          <li>Pathway to Elite package</li>
+        </ul>
+      </div>
+      <div class="mc-foot">Start-up: FREE · Monthly: from £49+VAT</div>
+    </div>
+
+    <div class="model-card tv-card">
+      <div class="mc-head">
+        <span class="badge badge-free">RETURN PACKAGE</span>
+        <h3>Returning to Travel</h3>
+        <div style="font-size:11px; color:#666; margin-top:3px;">Out of travel for 5+ years</div>
+      </div>
+      <div class="mc-body">
+        <strong>Who:</strong> Previously in travel but career break of 5+ years. Need refresher on systems, products and selling.<br><br>
+        <ul>
+          <li>Extended induction programme</li>
+          <li>Refresher destination training</li>
+          <li>Lower initial targets while ramping up</li>
+          <li>Pathway to Standard → Elite</li>
+        </ul>
+      </div>
+      <div class="mc-foot">Start-up: FREE · Monthly: from £49+VAT</div>
+    </div>
+
+    <div class="model-card tv-card">
+      <div class="mc-head">
+        <span class="badge badge-contact">AGENCY PACKAGE</span>
+        <h3>Travel Agency Owner</h3>
+        <div style="font-size:11px; color:#666; margin-top:3px;">Existing or new travel agency</div>
+      </div>
+      <div class="mc-body">
+        <strong>Who:</strong> Agency owners who want to plug into Travelosophers' infrastructure, licensing, and supplier terms.<br><br>
+        <ul>
+          <li>Bespoke commercial agreement</li>
+          <li>Higher volume targets</li>
+          <li>Multi-staff training</li>
+          <li>Wholesale supplier access</li>
+          <li>Agency-level support</li>
+        </ul>
+      </div>
+      <div class="mc-foot">Start-up: Contact · Monthly: from £99+VAT</div>
+    </div>
+
+    <div class="model-card tv-card">
+      <div class="mc-head">
+        <span class="badge badge-contact">OWN BRAND</span>
+        <h3>Own Brand Partner</h3>
+        <div style="font-size:11px; color:#666; margin-top:3px;">Use your own brand within the network</div>
+      </div>
+      <div class="mc-body">
+        <strong>Who:</strong> Established agents with their own brand who want TF's infrastructure but not the Travelosophers name.<br><br>
+        <ul>
+          <li>Use own brand throughout</li>
+          <li>Access to all back-end systems</li>
+          <li>Higher monthly fee (premium)</li>
+          <li>Full ABTA/ATOL protection</li>
+        </ul>
+      </div>
+      <div class="mc-foot">Start-up: Contact · Pricing: dependent on experience</div>
+    </div>
+  </div>
+
+  <div class="arrow-row">↓ &nbsp; Recommended TripFactory EPP Tier Model &nbsp; ↓</div>
+
+  <div class="models-intro">
+    <h2>Recommended TripFactory EPP — 4-Tier Model</h2>
+    <p>Based on TripFactory's current pipeline (26 agents across South, West, Central, North, East India), here is a proposed tiered model that mirrors the Travelosophers approach but is adapted for the Indian travel market context.</p>
+  </div>
+
+  <div class="highlight-box">
+    <strong>Key insight:</strong> Looking at the 26 agents already in TF's pipeline, they span a huge range — from 15-year veterans like Journey Maker (Bhopal, ₹12Cr turnover, 700 pax) to 1-year-old agencies like CNearMe Holidays (Bangalore, ₹1.5Cr, 2 staff). Treating them identically in terms of support, targets, and commission makes no sense. A tiered model solves this immediately.
+  </div>
+
+  <div class="models-grid">
+    <div class="model-card tf-card">
+      <div class="mc-head">
+        <span class="badge badge-elite">EPP ELITE</span>
+        <h3>Tier 3 — Senior Partner</h3>
+        <div style="font-size:11px; color:#666; margin-top:3px;">Equivalent to Travelosophers Travel Sales Professional</div>
+      </div>
+      <div class="mc-body">
+        <strong>Who:</strong> 5+ years in travel, 500+ pax/yr, ₹5Cr+ turnover, established client base, multiple staff, ready to scale aggressively.<br><br>
+        <strong>From current pipeline:</strong> Journey Maker, RC Holiday, Subhash Travelastic, Zero Mile Holidays, Multiple Task Holiday, Vasunadhara<br><br>
+        <ul>
+          <li>Highest commission tier (e.g. 70–75%)</li>
+          <li>Named TF Account Director</li>
+          <li>Co-funded marketing budget</li>
+          <li>Priority booking support SLA</li>
+          <li>Invitation to annual TF EPP conference</li>
+          <li>Access to exclusive product deals</li>
+        </ul>
+      </div>
+      <div class="mc-foot">Target: ₹3Cr+ gross/year · Monthly commitment: ₹5,000</div>
+    </div>
+
+    <div class="model-card tf-card">
+      <div class="mc-head">
+        <span class="badge badge-free">EPP GROWTH</span>
+        <h3>Tier 2 — Growth Partner</h3>
+        <div style="font-size:11px; color:#666; margin-top:3px;">Equivalent to Travelosophers Travel Industry Professional</div>
+      </div>
+      <div class="mc-body">
+        <strong>Who:</strong> 2–5 years in travel, 200–500 pax/yr, ₹1.5–5Cr turnover, growing team, clear ambition to scale.<br><br>
+        <strong>From current pipeline:</strong> Fabhnet, Goimomi Holidays, Tailored Experiences, Travel Again Holiday, Vayudoot, Jakariya Holidays<br><br>
+        <ul>
+          <li>Mid commission tier (e.g. 65%)</li>
+          <li>Named TF Account Manager</li>
+          <li>Structured quarterly business reviews</li>
+          <li>Access to full training programme</li>
+          <li>Co-branded marketing materials</li>
+          <li>Path to Tier 3 at ₹3Cr milestone</li>
+        </ul>
+      </div>
+      <div class="mc-foot">Target: ₹1.5Cr gross/year · Monthly commitment: ₹3,000</div>
+    </div>
+
+    <div class="model-card tf-card">
+      <div class="mc-head">
+        <span class="badge" style="background:#e3f2fd;color:#1565c0;">EPP STARTER</span>
+        <h3>Tier 1 — Starter Partner</h3>
+        <div style="font-size:11px; color:#666; margin-top:3px;">Equivalent to Travelosophers Return to Travel</div>
+      </div>
+      <div class="mc-body">
+        <strong>Who:</strong> 1–2 years in travel or returning to travel, &lt;200 pax/yr, ₹1–2Cr turnover, building client base, need structured support.<br><br>
+        <strong>From current pipeline:</strong> CNearMe Holidays, Trip Triangle, some newer South/Central India agents<br><br>
+        <ul>
+          <li>Base commission tier (e.g. 60%)</li>
+          <li>Extended induction (3 days)</li>
+          <li>Weekly check-ins for first 3 months</li>
+          <li>Mandatory business plan within 30 days</li>
+          <li>6-month performance review — move up or exit</li>
+        </ul>
+      </div>
+      <div class="mc-foot">Target: ₹50L gross/year · Monthly commitment: ₹2,000</div>
+    </div>
+
+    <div class="model-card tf-card">
+      <div class="mc-head">
+        <span class="badge badge-contact">EPP AGENCY</span>
+        <h3>Tier 4 — Agency / Multi-Branch Partner</h3>
+        <div style="font-size:11px; color:#666; margin-top:3px;">Equivalent to Travelosophers Agency Owner</div>
+      </div>
+      <div class="mc-body">
+        <strong>Who:</strong> Established travel agencies with multiple branches, staff of 5+, turnover ₹10Cr+, wanting to white-label TF's product and back-office.<br><br>
+        <strong>From current pipeline:</strong> Travco (Goa, 1000 pax, 10 staff, ₹30Cr), SGS Tour (Shimoga, 12,000 pax, 70 staff), RC GO (Goa), SOTC Allahabad, JK Tours (Pune)<br><br>
+        <ul>
+          <li>Bespoke commercial agreement</li>
+          <li>Multi-staff training programme</li>
+          <li>Dedicated TF operations manager</li>
+          <li>Own brand option available</li>
+          <li>Volume-based commission negotiation</li>
+        </ul>
+      </div>
+      <div class="mc-foot">Target: ₹10Cr+ gross/year · Monthly: negotiated</div>
+    </div>
+  </div>
+  <div class="footer-bar">TripFactory EPP Business Models · March 2026 · For Internal Use Only</div>
+</div>
+
+<!-- ═══════════════════════════════════════════════ PAGE 3: WHAT'S INCLUDED -->
+<div id="included" class="page">
+  <div class="header">
+    <h1>Travelosophers — What's Included → TripFactory EPP Equivalent</h1>
+    <p>9 pillars of the Travelosophers membership package, with TripFactory's current status and recommendations for each</p>
+  </div>
+  <div class="section-intro" style="padding:16px 20px 8px;">
+    <p style="font-size:12px; color:#555;">Travelosophers publishes a comprehensive "What's Included" framework across 9 pillars. Below is each pillar with what Travelosophers offers, what TF currently has, and what TF should add to create a comparable EPP membership package.</p>
+  </div>
+  <div class="inc-grid">
+
+    <div class="inc-card">
+      <h3><span class="icon" style="background:#fff3e0">💰</span>Low Overheads</h3>
+      <ul>
+        <li>Free franchise for experienced agents</li>
+        <li>Monthly fees from £49+VAT</li>
+        <li>Only pay for what you need</li>
+        <li>Card charges at competitive rates</li>
+      </ul>
+      <div class="tf-note"><strong>TF Status:</strong> No published fee. EPP appears free with no cost recovery mechanism.<br><strong>Add:</strong> Tiered monthly commitment (₹2k–5k) by partner level. Transparent card/payment charge policy for PSA transactions.</div>
+    </div>
+
+    <div class="inc-card">
+      <h3><span class="icon" style="background:#e8f5e9">📈</span>Leading Commission Terms</h3>
+      <ul>
+        <li>Starting at 60–65% of gross profit</li>
+        <li>Scalable to 80% (Directors Club)</li>
+        <li>Uncapped earnings</li>
+        <li>Multiple commission approaches available</li>
+      </ul>
+      <div class="tf-note"><strong>TF Status:</strong> Commission structure not published. No tiered growth pathway.<br><strong>Add:</strong> Published commission tiers (60% → 65% → 70% → 75%) linked to annual pax/revenue milestones. Uncapped earnings as a headline benefit.</div>
+    </div>
+
+    <div class="inc-card">
+      <h3><span class="icon" style="background:#fce4ec">🎪</span>Conferences &amp; Events</h3>
+      <ul>
+        <li>Annual overseas conference</li>
+        <li>Annual UK conference</li>
+        <li>Regional dinner events</li>
+        <li>Supplier events and training days</li>
+      </ul>
+      <div class="tf-note"><strong>TF Status:</strong> No EPP-specific events or community programme exists.<br><strong>Add:</strong> Annual EPP Summit (1 day, rotate cities). Quarterly zone-level meetups. Supplier evenings. WhatsApp community for all EPP partners. Recognition awards (EPP Partner of the Year).</div>
+    </div>
+
+    <div class="inc-card">
+      <h3><span class="icon" style="background:#e3f2fd">🎓</span>Training</h3>
+      <ul>
+        <li>2-day virtual induction</li>
+        <li>1-day business planning with BDM</li>
+        <li>Dedicated Learning Portal (LMS)</li>
+        <li>Supplier events, webinars, fam trips</li>
+        <li>Ongoing masterclasses</li>
+      </ul>
+      <div class="tf-note"><strong>TF Status:</strong> Informal training only. No LMS, no structured calendar, no fam trips programme.<br><strong>Add:</strong> Structured 2–3 day induction. Basic LMS (Google Classroom to start). Quarterly training calendar. Annual fam trip for top-performing Tier 3 partners.</div>
+    </div>
+
+    <div class="inc-card">
+      <h3><span class="icon" style="background:#e8eaf6">🤝</span>Support</h3>
+      <ul>
+        <li>Dedicated Business Development Manager</li>
+        <li>Travel admin processed by Head Office</li>
+        <li>In-house admin, marketing, IT, finance, accounting support</li>
+        <li>Online and offline community</li>
+      </ul>
+      <div class="tf-note"><strong>TF Status:</strong> After-sales support is strong (bookings, amendments, vouchers). But no named BDM per PSA and no community.<br><strong>Add:</strong> Named Account Manager per EPP partner. "What TF Does For You" one-pager. EPP community group (WhatsApp/Telegram).</div>
+    </div>
+
+    <div class="inc-card">
+      <h3><span class="icon" style="background:#f3e5f5">🎨</span>Branding &amp; Marketing</h3>
+      <ul>
+        <li>Leverage Travelosophers brand</li>
+        <li>All POS and marketing materials</li>
+        <li>Personal email, signature, business cards</li>
+        <li>Personal microsite page</li>
+        <li>Personally branded quotations</li>
+        <li>Monthly social media assets</li>
+      </ul>
+      <div class="tf-note"><strong>TF Status:</strong> Generic templates exist but no personalised PSA-level brand identity.<br><strong>Add:</strong> Co-branded EPP kit per PSA: personalised pitch deck, WhatsApp templates (city-specific), monthly social media assets, branded quotation templates with PSA name.</div>
+    </div>
+
+    <div class="inc-card">
+      <h3><span class="icon" style="background:#e0f7fa">💻</span>Technology</h3>
+      <ul>
+        <li>Cloud-based booking platform</li>
+        <li>Integrated CRM</li>
+        <li>Dynamic packaging capabilities</li>
+        <li>Full back-office system</li>
+        <li>Customer payment processing</li>
+        <li>VOIP telephone system</li>
+      </ul>
+      <div class="tf-note"><strong>TF Status:</strong> TF has a strong booking platform already. Platform usage by PSAs needs to be formally mandated and trained.<br><strong>Add:</strong> Formal platform onboarding module in induction. CRM usage made mandatory. VOIP option (or WhatsApp Business integration) for PSAs. Mobile app access.</div>
+    </div>
+
+    <div class="inc-card">
+      <h3><span class="icon" style="background:#fff8e1">🏨</span>Suppliers</h3>
+      <ul>
+        <li>Access to market-leading commercial terms</li>
+        <li>Bedbanks, scheduled + low-cost airlines</li>
+        <li>Transfer suppliers, ancillary suppliers</li>
+        <li>In-house Tour Operator</li>
+        <li>Contracts team for bespoke needs</li>
+        <li>Monthly tactical incentives tracker</li>
+      </ul>
+      <div class="tf-note"><strong>TF Status:</strong> Strong supplier network but no incentives tracker or tactical deals shared with PSAs.<br><strong>Add:</strong> Monthly EPP Incentives Tracker. Destination commission uplift list. Quarterly supplier briefing for EPP partners. Allow PSAs to request new supplier sourcing through TF contracts team.</div>
+    </div>
+
+    <div class="inc-card">
+      <h3><span class="icon" style="background:#e8f5e9">🛡️</span>Protection &amp; Compliance</h3>
+      <ul>
+        <li>Part of Advantage Travel Partnership (£4.5bn collective)</li>
+        <li>ATOL + ABTA bonded</li>
+        <li>100% customer financial protection</li>
+        <li>Secure payment processing</li>
+        <li>Professional Indemnity insurance</li>
+        <li>Anti-bribery, GDPR, Modern Slavery compliance</li>
+      </ul>
+      <div class="tf-note"><strong>TF Status:</strong> TF operates under IATA but no equivalent consumer protection framework published for PSAs.<br><strong>Add:</strong> India Regulatory Brief for PSAs (consumer protection, GST, data handling). Publish TF's IATA/regulatory coverage clearly. Consider industry body membership (TAAI, IATO) as a collective benefit for EPP partners.</div>
+    </div>
+
+  </div>
+  <div class="footer-bar">Travelosophers What's Included → TF EPP Recommendations · March 2026 · For Internal Use Only</div>
+</div>
+
+<!-- ═══════════════════════════════════════════════ PAGE 4: WHY US -->
+<div id="whyus" class="page">
+  <div class="header">
+    <h1>Travelosophers "Why Us" → What TripFactory Can Claim &amp; What It Needs to Build</h1>
+    <p>12 reasons Travelosophers gives for joining — mapped against TF's current EPP position</p>
+  </div>
+  <div class="section-intro">
+    <p>Travelosophers publishes 12 headline reasons to join. Below is each one, with an honest assessment of whether TripFactory can already make the same claim, or whether it needs to build towards it.</p>
+  </div>
+  <div class="why-grid">
+
+    <div class="why-card">
+      <h3>🏆 50+ Years' Experience (Cyplon Travel, 1972)</h3>
+      <p>Travelosophers trades on Cyplon Travel's 50-year heritage as a major trust signal for new PSAs.</p>
+      <div class="tf-eq">✅ <strong>TF Can Match:</strong> TripFactory has 10+ years of operation and Vinay Gupta's industry track record. Market this more explicitly in EPP recruitment. "A decade of building India's travel industry."</div>
+    </div>
+
+    <div class="why-card">
+      <h3>💰 Leading Commission Terms</h3>
+      <p>60–65% starting, scalable to 80%. Multiple commission approaches. Uncapped earnings. Positioned as market-leading in the UK homeworking sector.</p>
+      <div class="tf-gap">⚠️ <strong>TF Needs to Build:</strong> No published commission terms currently. Once defined and published, TF can make a strong claim — Indian PSAs typically earn much less from traditional wholesale models.</div>
+    </div>
+
+    <div class="why-card">
+      <h3>🎓 Unrivalled Training Efficiency</h3>
+      <p>"Our training is unrivalled in its efficiency — we want you to be earning as quickly as possible." Speed to first booking is the focus.</p>
+      <div class="tf-gap">⚠️ <strong>TF Needs to Build:</strong> Structured induction with a "Days to First Booking" KPI would be a powerful differentiator. "EPP partners make their first booking within 2 weeks of joining."</div>
+    </div>
+
+    <div class="why-card">
+      <h3>🏗️ Multi-Million Pound Investment Backing</h3>
+      <p>Significant investment behind Travelosophers with ambitious technology and growth roadmap.</p>
+      <div class="tf-eq">✅ <strong>TF Can Match:</strong> TripFactory has institutional backing and a technology platform. Position this in EPP recruitment: "Backed by a technology-first travel company with 791 staff and a global infrastructure."</div>
+    </div>
+
+    <div class="why-card">
+      <h3>🏨 In-House Tour Operator &amp; Contracting Team</h3>
+      <p>"Our jewel in the crown — we can contract directly with suppliers to give you better margins." Dynamic packaging + direct hotel contracting = PSA earns more per booking.</p>
+      <div class="tf-eq">✅ <strong>TF Can Match:</strong> TripFactory's direct supplier relationships and technology platform (TF Tech + hotel contracts) are exactly this. Make it a headline EPP benefit: "You access TF's direct contracts — better margins than any standalone agent."</div>
+    </div>
+
+    <div class="why-card">
+      <h3>🤝 Head Office Support + Dedicated BDM</h3>
+      <p>Named BDM for every PSA. Day-to-day support. Quarterly business reviews. Admin team handles all after-sales centrally.</p>
+      <div class="tf-gap">⚠️ <strong>TF Needs to Build:</strong> The field team exists but BDM roles aren't formalised per PSA. Naming an Account Manager for each EPP partner immediately closes this gap. Low cost, high impact.</div>
+    </div>
+
+    <div class="why-card">
+      <h3>🛡️ Financial Protection &amp; Stability</h3>
+      <p>ABTA + ATOL + IATA. "All bookings protected by leading industry bodies." This is a PSA's insurance policy against business failure.</p>
+      <div class="tf-gap">⚠️ <strong>TF Needs to Build:</strong> TF has IATA but the full consumer protection story (what happens if TF closes? what covers the PSA's clients?) needs to be documented and communicated clearly to EPP partners.</div>
+    </div>
+
+    <div class="why-card">
+      <h3>📦 Dynamic Packaging</h3>
+      <p>"We allow you to take control, build your own packages, one element at a time, and make bigger margins." This is positioned as a key income differentiator vs selling fixed tour operator packages.</p>
+      <div class="tf-eq">✅ <strong>TF Can Match:</strong> TripFactory's tech platform already enables dynamic packaging. This should be a core EPP selling point — "Don't just sell someone else's package. Build your own. Keep the margin."</div>
+    </div>
+
+    <div class="why-card">
+      <h3>🌐 Part of Advantage Travel Partnership (£4.5bn collective)</h3>
+      <p>Being part of the UK's largest independent travel group gives Travelosophers commercial leverage. PSAs benefit from the collective buying power.</p>
+      <div class="tf-gap">⚠️ <strong>TF Needs to Build:</strong> TF could join TAAI (Travel Agents Association of India) or IATO as a collective and position EPP partners as members by extension. Gives instant credibility and supplier leverage.</div>
+    </div>
+
+    <div class="why-card">
+      <h3>✈️ Supplier Access</h3>
+      <p>"Top suppliers — packages, hotels, cruises, flights, transfers and more." The breadth of supplier access is a major recruitment argument for PSAs who currently cobble together relationships independently.</p>
+      <div class="tf-eq">✅ <strong>TF Can Match:</strong> TripFactory's supplier network is already strong. The key is communicating it. Create an "EPP Supplier Portfolio" document showing all available suppliers, destinations, and commission rates — a powerful recruitment and retention tool.</div>
+    </div>
+
+    <div class="why-card">
+      <h3>💻 Systems &amp; Technology</h3>
+      <p>"Constantly investing in technology with an exciting roadmap." Cloud-based, CRM-integrated, works anywhere. Positioned as a competitive advantage over standalone agents using spreadsheets.</p>
+      <div class="tf-eq">✅ <strong>TF Can Match:</strong> TripFactory has a strong tech platform. Position this explicitly in EPP: "Stop using spreadsheets. TF gives you a professional booking platform, CRM, quotation system, and payment processing — from day one."</div>
+    </div>
+
+    <div class="why-card">
+      <h3>🏅 Award-Winning (Travel Weekly Homeworking Agency of the Year)</h3>
+      <p>Industry recognition used to signal credibility and quality to prospective PSAs. "Best Small Homeworking Agency of the Year."</p>
+      <div class="tf-gap">⚠️ <strong>TF Should Pursue:</strong> Enter TripFactory for TAAI / TAFI / Travel+Leisure India awards in the PSA/Franchise category. Even being shortlisted becomes a recruitment asset. Launch an internal "EPP Partner of the Year" award to generate content and community pride.</div>
+    </div>
+
+  </div>
+
+  <div class="highlight-box" style="margin:0 20px 20px;">
+    <strong>Summary — TF's "Why Join EPP" Scorecard:</strong><br><br>
+    ✅ <strong>Can claim today (6/12):</strong> Industry experience, in-house contracting, dynamic packaging, technology platform, supplier access, back-office support.<br><br>
+    ⚠️ <strong>Need to build (6/12):</strong> Published commission terms, structured training, named BDM per PSA, formal consumer protection story, industry body membership, award/recognition programme.
+  </div>
+
+  <div class="footer-bar">Travelosophers Why Us → TF EPP Lessons · March 2026 · For Internal Use Only</div>
+</div>
+
+<script>
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  event.target.classList.add('active');
+}
+</script>
+</body>
+</html>
